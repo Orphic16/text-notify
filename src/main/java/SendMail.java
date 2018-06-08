@@ -1,13 +1,10 @@
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
+import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
 public class SendMail {
-    public static void send(String text) {
+    public static void sendYahoo(String text) {
         String from = "camptextnotify@yahoo.com";
         String pass = "campingisfun";
         String to = "6515284028@tmomail.net";
@@ -35,10 +32,10 @@ public class SendMail {
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
 
             // Set Subject: header field
-            message.setSubject(text);
+            message.setSubject(".");
 
             // Now set the actual message
-            message.setText(".");
+            message.setText(text);
 
             // Send message
             Transport transport = session.getTransport("smtp");
@@ -46,6 +43,39 @@ public class SendMail {
             transport.sendMessage(message, message.getAllRecipients());
             transport.close();
             System.out.println("Sent message successfully....");
+        } catch (MessagingException mex) {
+            mex.printStackTrace();
+        }
+    }
+
+    public static void send(String text) {
+        try {
+            String from = "camptextnotify@outlook.com";
+            String pass = "Campingisfun!";
+            String to = "6515284028@tmomail.net";
+            String host = "smtp-mail.outlook.com";
+            int port = 587;
+
+            Properties props = new Properties();
+            props.put("mail.smtp.host", host);
+            props.put("mail.smtp.port", port);
+            props.put("mail.smtp.starttls.enable","true");
+            props.put("mail.smtp.auth", "true");
+
+            Session session = Session.getDefaultInstance(props,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(from, pass);
+                        }
+                    });
+
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(from));
+            msg.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            msg.setSubject(".");
+            msg.setText(text);
+            Transport.send(msg);
+            System.out.println("Email sent successfully...");
         } catch (MessagingException mex) {
             mex.printStackTrace();
         }
