@@ -32,27 +32,27 @@ public class ServerRunner {
     }
 
     private static void runSearches() {
-        runSearch("6/8/2018", "6/9/2018");
+        runSearch("6/8/2019", "6/9/2019");
 
         sleep();
 
-        runSearch("6/15/2018", "6/16/2018");
+        runSearch("6/15/2019", "6/16/2019");
 
         sleep();
 
-        runSearch("6/22/2018", "6/23/2018");
+        runSearch("6/22/2019", "6/23/2019");
 
         sleep();
 
-        runSearch("6/29/2018", "6/30/2018");
+        runSearch("6/29/2019", "6/30/2019");
 
         sleep();
 
-        runSearch("7/6/2018", "7/7/2018");
+        runSearch("7/6/2019", "7/7/2019");
 
         sleep();
 
-        runSearch("7/13/2018", "7/14/2018");
+        runSearch("7/13/2019", "7/14/2019");
     }
 
     private static void runSearch(String date) {
