@@ -4,7 +4,7 @@ import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class ServerRunner {
+public class CampSiteSearchServerRunner {
     public static void main(String[] args) {
         new Task().run();
     }
@@ -27,35 +27,35 @@ public class ServerRunner {
 
             System.out.println(MessageFormat.format("{0}. Delay was {1} ms.  Next run: {2}", df.format(current), delay, df.format(nextRun.getTime())));
 
-            runSearches();
+            runCampingSearches();
         }
     }
 
-    private static void runSearches() {
-        runSearch("6/8/2019", "6/9/2019");
+    private static void runCampingSearches() {
+        runCampingSearch("6/8/2019", "6/9/2019");
 
         sleep();
 
-        runSearch("6/15/2019", "6/16/2019");
+        runCampingSearch("6/15/2019", "6/16/2019");
 
         sleep();
 
-        runSearch("6/22/2019", "6/23/2019");
+        runCampingSearch("6/22/2019", "6/23/2019");
 
         sleep();
 
-        runSearch("6/29/2019", "6/30/2019");
+        runCampingSearch("6/29/2019", "6/30/2019");
 
         sleep();
 
-        runSearch("7/6/2019", "7/7/2019");
+        runCampingSearch("7/6/2019", "7/7/2019");
 
         sleep();
 
-        runSearch("7/13/2019", "7/14/2019");
+        runCampingSearch("7/13/2019", "7/14/2019");
     }
 
-    private static void runSearch(String date) {
+    private static void runCampingSearch(String date) {
         try {
             CampRepository cr = new CampRepository();
             String search1 = cr.findCampsitesForDate(date, FACILITY.GOOSEBERRY_FALLS);
@@ -70,7 +70,7 @@ public class ServerRunner {
         }
     }
 
-    private static void runSearch(String date, String nextDate) {
+    private static void runCampingSearch(String date, String nextDate) {
         try {
             CampRepository cr = new CampRepository();
             String search1 = cr.findCampsitesForTwoDates(date, nextDate, FACILITY.GOOSEBERRY_FALLS);

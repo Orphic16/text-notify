@@ -1,3 +1,4 @@
+import model.UnitGridData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -12,7 +13,7 @@ public class CampRepositoryTest {
         // Arrange
         CampRepository cr = new CampRepository();
 
-        String response = new String(Files.readAllBytes(Paths.get("testData/Response.txt")));
+        String response = new String(Files.readAllBytes(Paths.get("src/test/resources/campsite_response.txt")));
 
         // Act
         List<String> result = cr.findSingleDate(response, "6/10/2018");
@@ -28,7 +29,7 @@ public class CampRepositoryTest {
         // Arrange
         CampRepository cr = new CampRepository();
 
-        String response = new String(Files.readAllBytes(Paths.get("testData/WeekendResponse.txt")));
+        String response = new String(Files.readAllBytes(Paths.get("src/test/resources/campsite_weekendresponse.txt")));
 
         // Act
         List<String> result = cr.findTwoDates(response, "6/15/2018", "6/16/2018");

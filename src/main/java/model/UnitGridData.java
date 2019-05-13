@@ -1,3 +1,5 @@
+package model;
+
 public class UnitGridData {
     public String FacilityId;
     public String PlaceId;
