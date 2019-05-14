@@ -25,7 +25,7 @@ public class BrickSeekSearchServerRunner {
             nextRun.setTime(current);
             nextRun.add(Calendar.MILLISECOND, delay);
 
-            System.out.println(MessageFormat.format("{0}. Delay was {1} ms.  Next run: {2}", df.format(current), delay, df.format(nextRun.getTime())));
+            System.out.println(MessageFormat.format("{0}. Delay was {1} seconds.  Next run: {2}", df.format(current), delay / 1000.0, df.format(nextRun.getTime())));
 
             runBrickSeekSearches();
         }
@@ -37,6 +37,10 @@ public class BrickSeekSearchServerRunner {
         sleep();
 
         runBrickSeekSearch("314572057", 649.00);
+
+        sleep();
+
+        runBrickSeekSearch("115832568", 499.00);
     }
 
     private static void runBrickSeekSearch(String sku, Double amount) {
@@ -62,8 +66,8 @@ public class BrickSeekSearchServerRunner {
     private static void sleep() {
         try {
             int sleep = 5000 + new Random().nextInt(5000);
-            System.out.println(MessageFormat.format("Sleeping {0} ms", sleep));
-            Thread.sleep(5000 + new Random().nextInt(5000));
+            System.out.println(MessageFormat.format("Sleeping {0} seconds", sleep / 1000.0));
+            Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
