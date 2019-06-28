@@ -1,7 +1,5 @@
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+package repository;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
@@ -24,18 +22,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BrickSeekRepository {
-    HttpClient client;
-
-    BasicCookieStore httpCookieStore;
+    private HttpClient client;
 
     public BrickSeekRepository() {
-        httpCookieStore = new BasicCookieStore();
+        BasicCookieStore httpCookieStore = new BasicCookieStore();
         HttpClientBuilder builder = HttpClientBuilder.create()
                 .setDefaultCookieStore(httpCookieStore)
-                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36")
+                .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36")
                 .setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
 
         // For Fiddler
+        // keytool.exe -import -file C:\Users\smurf\Desktop\FiddlerRoot.cer -keystore C:\Windows\System32\FiddlerKeystore -alias Fiddler -storepass password
         // builder.setProxy(new HttpHost("localhost", 8888));
         // System.setProperty("javax.net.ssl.trustStore", "C:\\Windows\\System32\\FiddlerKeystore");
         // System.setProperty("javax.net.ssl.trustStorePassword", "password");
@@ -55,20 +52,20 @@ public class BrickSeekRepository {
         return MessageFormat.format("Stores available for {0}: {1}", sku, stores.toString());
     }
 
-    public List<String> findStoresBelowAmount(String response, Double amount) {
+    List<String> findStoresBelowAmount(String response, Double amount) {
         List<String> stores = new ArrayList<>();
 
         Document doc = Jsoup.parse(response);
         Element inventory = doc.getElementsByClass("inventory-checker-table--store-availability-price").first();
         Elements rows = inventory.select(".table__body").select(".table__row");
 
-        for (Element row: rows) {
+        for (Element row : rows) {
             Element price = row.getElementsByClass("price-formatted__dollars").first();
             Element availability = row.getElementsByClass("availability-status-indicator__text").first();
             Element store = row.getElementsByTag("address").first();
 
             Element quantity = null;
-            if (availability.text() != "Out of Stock" && availability.text() != "Limited Stock") {
+            if (!availability.text().equals("Out of Stock") && !availability.text().equals("Limited Stock")) {
                 quantity = row.getElementsByClass("table__cell-quantity").first();
             }
 
@@ -81,7 +78,7 @@ public class BrickSeekRepository {
         return stores;
     }
 
-    public String getPricesBySku(String sku) throws IOException {
+    private String getPricesBySku(String sku) throws IOException {
         String url = "https://brickseek.com/walmart-inventory-checker/?sku=" + sku;
 
         String body = MessageFormat.format("method=sku&sku={0}&upc=&zip=55077&sort=recommended", sku);
@@ -89,7 +86,7 @@ public class BrickSeekRepository {
         return Post(url, body);
     }
 
-    public String Post(String url, String body) throws IOException {
+    private String Post(String url, String body) throws IOException {
         HttpPost post = new HttpPost(url);
 
         StringEntity requestEntity = new StringEntity(body, ContentType.APPLICATION_FORM_URLENCODED);
@@ -100,7 +97,7 @@ public class BrickSeekRepository {
 
         BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String line;
         while ((line = rd.readLine()) != null) {
             result.append(line);

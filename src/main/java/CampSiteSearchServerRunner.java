@@ -1,3 +1,5 @@
+import repository.CampRepository;
+
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -32,27 +34,15 @@ public class CampSiteSearchServerRunner {
     }
 
     private static void runCampingSearches() {
-        runCampingSearch("6/8/2019", "6/9/2019");
+        runCampingSearch("06/28/2019", "06/29/2019");
 
         sleep();
 
-        runCampingSearch("6/15/2019", "6/16/2019");
+        runCampingSearch("07/04/2019", "07/05/2019");
 
         sleep();
 
-        runCampingSearch("6/22/2019", "6/23/2019");
-
-        sleep();
-
-        runCampingSearch("6/29/2019", "6/30/2019");
-
-        sleep();
-
-        runCampingSearch("7/6/2019", "7/7/2019");
-
-        sleep();
-
-        runCampingSearch("7/13/2019", "7/14/2019");
+        runCampingSearch("07/05/2019", "07/06/2019");
     }
 
     private static void runCampingSearch(String date) {
@@ -74,11 +64,12 @@ public class CampSiteSearchServerRunner {
         try {
             CampRepository cr = new CampRepository();
             String search1 = cr.findCampsitesForTwoDates(date, nextDate, FACILITY.GOOSEBERRY_FALLS);
-            String search2 = cr.findCampsitesForTwoDates(date, nextDate, FACILITY.SPLIT_ROCK);
             System.out.println(search1);
-            System.out.println(search2);
-
             sendIfNotEmpty(search1);
+
+            CampRepository cr2 = new CampRepository();
+            String search2 = cr2.findCampsitesForTwoDates(date, nextDate, FACILITY.SPLIT_ROCK);
+            System.out.println(search2);
             sendIfNotEmpty(search2);
         } catch (IOException e) {
             e.printStackTrace();
