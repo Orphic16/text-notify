@@ -48,7 +48,7 @@ public class SendMail {
         }
     }
 
-    public static void send(String text) {
+    static void send(String text) {
         try {
             String from = "camptextnotify@outlook.com";
             String pass = "Campingisfun!";
@@ -59,7 +59,7 @@ public class SendMail {
             Properties props = new Properties();
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.port", port);
-            props.put("mail.smtp.starttls.enable","true");
+            props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.auth", "true");
 
             Session session = Session.getDefaultInstance(props,

@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import model.*;
+import model.ArrivalDate;
+import model.AvailabilitySearchParams;
+import model.PlaceIdAndFacilityId;
+import model.SearchParams;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -243,6 +246,7 @@ public class CampRepository {
                 .replace("{placeId}", placeId);
 
         return body;
+
     }
 
     String serialize(Object obj) throws JsonProcessingException {

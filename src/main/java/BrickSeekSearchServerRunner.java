@@ -7,30 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BrickSeekSearchServerRunner {
-    public static void main(String[] args) {
-        new Task().run();
-    }
-
     private static Timer timer = new Timer();
 
-    static class Task extends TimerTask {
-        @Override
-        public void run() {
-            int delay = (60 * 1000 * 60 + new Random().nextInt(60 * 1000 * 60)); // Every 60 to 120 minutes run
-            timer.schedule(new Task(), delay);
-
-            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-
-            Date current = new Date();
-
-            Calendar nextRun = Calendar.getInstance();
-            nextRun.setTime(current);
-            nextRun.add(Calendar.MILLISECOND, delay);
-
-            System.out.println(MessageFormat.format("{0}. Delay was {1} seconds.  Next run: {2}", df.format(current), delay / 1000.0, df.format(nextRun.getTime())));
-
-            runBrickSeekSearches();
-        }
+    public static void main(String[] args) {
+        new Task().run();
     }
 
     private static void runBrickSeekSearches() {
@@ -72,6 +52,26 @@ public class BrickSeekSearchServerRunner {
             Thread.sleep(sleep);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    static class Task extends TimerTask {
+        @Override
+        public void run() {
+            int delay = (60 * 1000 * 60 + new Random().nextInt(60 * 1000 * 60)); // Every 60 to 120 minutes run
+            timer.schedule(new Task(), delay);
+
+            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+
+            Date current = new Date();
+
+            Calendar nextRun = Calendar.getInstance();
+            nextRun.setTime(current);
+            nextRun.add(Calendar.MILLISECOND, delay);
+
+            System.out.println(MessageFormat.format("{0}. Delay was {1} seconds.  Next run: {2}", df.format(current), delay / 1000.0, df.format(nextRun.getTime())));
+
+            runBrickSeekSearches();
         }
     }
 }
