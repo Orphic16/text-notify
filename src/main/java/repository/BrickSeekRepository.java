@@ -70,7 +70,7 @@ public class BrickSeekRepository {
             }
 
             if (quantity != null && Double.parseDouble(price.text()) < amount) {
-                String output = MessageFormat.format("{0} are available for ${1} at {2}", quantity.text().replaceAll("[^0-9]", ""), price.text(), store.text());
+                String output = MessageFormat.format("{0} are available for ${1} at {2}", quantity.text().replace("Quantity: ", ""), price.text(), store.text().replace(" Google MapsApple Maps", ""));
                 stores.add(output);
             }
         }
