@@ -49,7 +49,7 @@ public class BrickSeekRepository {
             return MessageFormat.format("No stores for {0}", sku);
         }
 
-        return MessageFormat.format("Stores available for {0}: {1}", sku, stores.toString());
+        return MessageFormat.format("Stores available for {0}:\n{1}", sku, String.join("\n\n", stores));
     }
 
     List<String> findStoresBelowAmount(String response, Double amount) {

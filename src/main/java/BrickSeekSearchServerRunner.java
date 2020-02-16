@@ -14,15 +14,7 @@ public class BrickSeekSearchServerRunner {
     }
 
     private static void runBrickSeekSearches() {
-        runBrickSeekSearch("874425416", 599.00);
-
-        sleep();
-
-        runBrickSeekSearch("314572057", 649.00);
-
-        sleep();
-
-        runBrickSeekSearch("115832568", 499.00);
+        runBrickSeekSearch("10972961", 85.00);
     }
 
     private static void runBrickSeekSearch(String sku, Double amount) {
@@ -38,7 +30,7 @@ public class BrickSeekSearchServerRunner {
     }
 
     private static void sendIfNotEmpty(String searchResult) {
-        if (searchResult.contains("No")) {
+        if (searchResult.contains("No sites for")) {
             return;
         }
 
