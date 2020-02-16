@@ -57,7 +57,7 @@ public class CampSiteSearchServerRunner {
     }
 
     private static void sendIfNotEmpty(String searchResult) {
-        if (searchResult.contains("No")) {
+        if (searchResult.contains("No sites for")) {
             return;
         }
 

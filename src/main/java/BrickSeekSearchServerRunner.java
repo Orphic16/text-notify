@@ -14,7 +14,7 @@ public class BrickSeekSearchServerRunner {
     }
 
     private static void runBrickSeekSearches() {
-        runBrickSeekSearch("10972961", 85.00);
+        runBrickSeekSearch("10972961", 64.00);
     }
 
     private static void runBrickSeekSearch(String sku, Double amount) {
@@ -30,7 +30,7 @@ public class BrickSeekSearchServerRunner {
     }
 
     private static void sendIfNotEmpty(String searchResult) {
-        if (searchResult.contains("No sites for")) {
+        if (searchResult.contains("No stores for")) {
             return;
         }
 
