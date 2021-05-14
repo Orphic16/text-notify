@@ -17,11 +17,11 @@ public class BrickSeekRepositoryTest {
         String response = new String(Files.readAllBytes(Paths.get("src/test/resources/brickseek_response.txt")));
 
         // Act
-        List<String> result = bsr.findStoresBelowAmount(response, 600.00);
+        List<String> result = bsr.findStoresBelowAmount(response, 600.00, 0);
 
         // Assert
         Assert.assertEquals(7, result.size());
-        Assert.assertEquals("4 are available for $599 at 9165 Cahill Ave Inver Grove Heights MN 55076 (2 Miles Away) Google MapsApple Maps", result.get(0));
-        Assert.assertEquals("4 are available for $599 at 9300 East Point Douglas Rd S Cottage Grove MN 55016 (7.8 Miles Away) Google MapsApple Maps", result.get(1));
+        Assert.assertEquals("4 are available for $599 at 9165 Cahill Ave Inver Grove Heights MN 55076 (2 Miles Away)", result.get(0));
+        Assert.assertEquals("4 are available for $599 at 9300 East Point Douglas Rd S Cottage Grove MN 55016 (7.8 Miles Away)", result.get(1));
     }
 }

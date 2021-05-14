@@ -13,6 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import util.Utils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BrickSeekRepository {
-    private HttpClient client;
+    private final HttpClient client;
 
     public BrickSeekRepository() {
         BasicCookieStore httpCookieStore = new BasicCookieStore();
@@ -43,7 +44,7 @@ public class BrickSeekRepository {
     public String findStoresWithLowerPriceBySku(String sku, Double amount) throws IOException {
         String result = getPricesBySku(sku);
 
-        List<String> stores = findStoresBelowAmount(result, amount);
+        List<String> stores = findStoresBelowAmount(result, amount, 0);
 
         if (stores.isEmpty()) {
             return MessageFormat.format("No stores for {0}", sku);
@@ -52,11 +53,24 @@ public class BrickSeekRepository {
         return MessageFormat.format("Stores available for {0}:\n{1}", sku, String.join("\n\n", stores));
     }
 
-    List<String> findStoresBelowAmount(String response, Double amount) {
+    List<String> findStoresBelowAmount(String response, Double amount, int tryCount) {
         List<String> stores = new ArrayList<>();
 
         Document doc = Jsoup.parse(response);
         Element inventory = doc.getElementsByClass("inventory-checker-table--store-availability-price").first();
+
+        if (inventory == null) {
+            // retry
+            Utils.sleep();
+            if (tryCount < 3) {
+                tryCount++;
+                System.out.println("Retrying count: " + tryCount);
+                return findStoresBelowAmount(response, amount, tryCount);
+            } else {
+                return stores;
+            }
+        }
+
         Elements rows = inventory.select(".table__body").select(".table__row");
 
         for (Element row : rows) {
@@ -73,13 +87,25 @@ public class BrickSeekRepository {
                 String output = MessageFormat.format("{0} are available for ${1} at {2}", quantity.text().replace("Quantity: ", ""), price.text(), store.text().replace(" Google MapsApple Maps", ""));
                 stores.add(output);
             }
+
+            // Optional code to get price of out of stock places.
+//            if (quantity == null && Double.parseDouble(price.text()) < amount) {
+//                String output = MessageFormat.format("0 are available for ${0} at {1}", price.text(), store.text().replace(" Google MapsApple Maps", ""));
+//
+//                if (!(
+//                        (store.text().contains("Apple Valley") && price.text().equals("42")) ||
+//                                (store.text().contains("Vadnais Heights") && price.text().equals("25")) ||
+//                                (store.text().contains("Woodbury") && price.text().equals("35")))) {
+//                    stores.add(output);
+//                }
+//            }
         }
 
         return stores;
     }
 
     private String getPricesBySku(String sku) throws IOException {
-        String url = "https://brickseek.com/walmart-inventory-checker/?sku=" + sku;
+        String url = "https://brickseek.com/walmart-inventory-checker?sku=" + sku;
 
         String body = MessageFormat.format("method=sku&sku={0}&upc=&zip=55077&sort=recommended", sku);
 

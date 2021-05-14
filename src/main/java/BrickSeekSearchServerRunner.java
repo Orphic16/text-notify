@@ -1,4 +1,5 @@
 import repository.BrickSeekRepository;
+import util.Utils;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -14,7 +15,15 @@ public class BrickSeekSearchServerRunner {
     }
 
     private static void runBrickSeekSearches() {
-        runBrickSeekSearch("10972961", 64.00);
+        runBrickSeekSearch("446346201", 95.00);
+
+        Utils.sleep();
+
+        runBrickSeekSearch("979038361", 269.00);
+
+        Utils.sleep();
+
+        runBrickSeekSearch("734447693", 154.00);
     }
 
     private static void runBrickSeekSearch(String sku, Double amount) {
@@ -35,16 +44,6 @@ public class BrickSeekSearchServerRunner {
         }
 
         SendMail.send(searchResult);
-    }
-
-    private static void sleep() {
-        try {
-            int sleep = 5000 + new Random().nextInt(5000);
-            System.out.println(MessageFormat.format("Sleeping {0} seconds", sleep / 1000.0));
-            Thread.sleep(sleep);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     static class Task extends TimerTask {
