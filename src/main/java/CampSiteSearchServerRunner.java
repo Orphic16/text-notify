@@ -7,22 +7,22 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class CampSiteSearchServerRunner {
-    private static Timer timer = new Timer();
+    private static final Timer timer = new Timer();
 
     public static void main(String[] args) {
         new Task().run();
     }
 
     private static void runCampingSearches() {
-        runCampingSearch("06/28/2019", "06/29/2019");
+        runCampingSearch("2021-05-21", "2021-05-22");
 
         sleep();
 
-        runCampingSearch("07/04/2019", "07/05/2019");
+        runCampingSearch("2021-05-28", "2021-05-29");
 
         sleep();
 
-        runCampingSearch("07/05/2019", "07/06/2019");
+        runCampingSearch("2021-06-04", "2021-06-05");
     }
 
     private static void runCampingSearch(String date) {

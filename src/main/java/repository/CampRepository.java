@@ -3,46 +3,33 @@ package repository;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import model.ArrivalDate;
-import model.AvailabilitySearchParams;
-import model.PlaceIdAndFacilityId;
-import model.SearchParams;
+import model.GridModel;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CampRepository {
-    private HttpClient client;
+    private final HttpClient client;
 
     public CampRepository() {
         BasicCookieStore httpCookieStore = new BasicCookieStore();
@@ -63,17 +50,9 @@ public class CampRepository {
     public String findCampsitesForDate(String date, String facility) throws IOException {
         String[] parts = facility.split(",");
 
-        PlaceIdAndFacilityId placeIdAndFacilityId = new PlaceIdAndFacilityId();
-        placeIdAndFacilityId.placeId = Integer.parseInt(parts[2]);
-        placeIdAndFacilityId.facilityId = 0;
+        GridModel gridModel = buildGridModel(parts[1], date);
 
-        String advanceSearchBody = getSessionCookies(parts[1], parts[2]);
-
-        sessionClears(date);
-        setSessionValue(date);
-        setPlaceIdAndFacilityId(placeIdAndFacilityId);
-
-        String result = advanceSearch(advanceSearchBody);
+        String result = postGrid(gridModel);
 
         List<String> sites = findSingleDate(result, date);
 
@@ -87,17 +66,9 @@ public class CampRepository {
     public String findCampsitesForTwoDates(String date, String nextDate, String facility) throws IOException {
         String[] parts = facility.split(",");
 
-        PlaceIdAndFacilityId placeIdAndFacilityId = new PlaceIdAndFacilityId();
-        placeIdAndFacilityId.placeId = Integer.parseInt(parts[2]);
-        placeIdAndFacilityId.facilityId = 0;
+        GridModel gridModel = buildGridModel(parts[1], date);
 
-        String advanceSearchBody = getSessionCookies(parts[1], parts[2]);
-
-        sessionClears(date);
-        setSessionValue(date);
-        setPlaceIdAndFacilityId(placeIdAndFacilityId);
-
-        String result = advanceSearch(advanceSearchBody);
+        String result = postGrid(gridModel);
 
         List<String> sites = findTwoDates(result, date, nextDate);
 
@@ -108,71 +79,93 @@ public class CampRepository {
         return MessageFormat.format("Sites available for {0} on {1} and {2}: {3}", parts[0], date, nextDate, sites.toString());
     }
 
-    List<String> findSingleDate(String response, String dateToMatch) {
-        List<String> sites = new ArrayList<>();
+    HashMap<String, ArrayList<String>> createSiteMap(String response) throws IOException {
+        HashMap<String, ArrayList<String>> siteMap = new HashMap<>();
 
-        Matcher matcher = Pattern.compile("\\d+ {2}is available on {2}" + dateToMatch).matcher(response);
-        while (matcher.find()) {
-            sites.add(matcher.group().split(" ")[0]);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(response);
+
+        Iterator<JsonNode> units = jsonNode.findPath("Units").elements();
+        while (units.hasNext()) {
+            JsonNode currentUnit = units.next();
+
+            Iterator<JsonNode> slices = currentUnit.findPath("Slices").elements();
+            while (slices.hasNext()) {
+                JsonNode currentSlice = slices.next();
+
+                JsonNode isFree = currentSlice.findPath("IsFree");
+                if (isFree.booleanValue()) {
+                    String name = currentUnit.findPath("Name").textValue();
+                    String date = currentSlice.findPath("Date").textValue();
+
+                    if (siteMap.containsKey(name)) {
+                        siteMap.get(name).add(date);
+                    } else {
+                        ArrayList<String> dates = new ArrayList<>();
+                        dates.add(date);
+                        siteMap.put(name, dates);
+                    }
+                }
+            }
+        }
+
+        return siteMap;
+    }
+
+    List<String> findSingleDate(String response, String dateToMatch) throws IOException {
+        List<String> sites = new ArrayList<>();
+        HashMap<String, ArrayList<String>> siteMap = createSiteMap(response);
+
+        for (HashMap.Entry<String, ArrayList<String>> site : siteMap.entrySet()) {
+            List<String> availableDates = site.getValue();
+            if (availableDates.contains(dateToMatch)) {
+                sites.add(site.getKey());
+            }
         }
 
         return sites;
     }
 
-    List<String> findTwoDates(String response, String dateToMatch, String secondDateToMatch) {
+    List<String> findTwoDates(String response, String dateToMatch, String secondDateToMatch) throws IOException {
         List<String> sites = new ArrayList<>();
-        List<String> secondSites = new ArrayList<>();
+        HashMap<String, ArrayList<String>> siteMap = createSiteMap(response);
 
-        Matcher matcher = Pattern.compile("\\d+ {2}is available on {2}" + dateToMatch).matcher(response);
-        while (matcher.find()) {
-            sites.add(matcher.group().split(" ")[0]);
+        for (HashMap.Entry<String, ArrayList<String>> site : siteMap.entrySet()) {
+            List<String> availableDates = site.getValue();
+            if (availableDates.contains(dateToMatch) && availableDates.contains(secondDateToMatch)) {
+                sites.add(site.getKey());
+            }
         }
-
-        Matcher secondMatcher = Pattern.compile("\\d+ {2}is available on {2}" + secondDateToMatch).matcher(response);
-        while (secondMatcher.find()) {
-            secondSites.add(secondMatcher.group().split(" ")[0]);
-        }
-
-        sites.retainAll(secondSites);
 
         return sites;
     }
 
-    private void setPlaceIdAndFacilityId(PlaceIdAndFacilityId placeIdAndFacilityId) throws IOException {
-        String url = "https://reservemn.usedirect.com/MinnesotaWeb/Facilities/AdvanceSearch.aspx/SetNightByPlaceIdAndFacilityIdOnUnitGrid";
-        Post(url, placeIdAndFacilityId);
+    private GridModel buildGridModel(String facilityId, String date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter json = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+
+        String outputDate = LocalDate.parse(date, formatter).format(json);
+        String maxDate = LocalDate.parse(date, formatter).plusDays(20).format(json);
+
+        GridModel gridModel = new GridModel();
+        gridModel.FacilityId = facilityId;
+        gridModel.UnitTypeId = 0;
+        gridModel.StartDate = outputDate;
+        gridModel.InSeasonOnly = true;
+        gridModel.WebOnly = true;
+        gridModel.IsADA = false;
+        gridModel.SleepingUnitId = 0;
+        gridModel.MinVehicleLength = 0;
+        gridModel.UnitCategoryId = 0;
+        gridModel.MinDate = outputDate;
+        gridModel.MaxDate = maxDate;
+
+        return gridModel;
     }
 
-    private String advanceSearch(String advanceSearchBody) throws IOException {
-        String url = "https://reservemn.usedirect.com/MinnesotaWeb/Facilities/AdvanceSearch.aspx";
-        return PostForm(url, advanceSearchBody);
-    }
-
-    private void sessionClears(String date) throws IOException {
-        String url = "https://reservemn.usedirect.com/MinnesotaWeb/Facilities/AdvanceSearch.aspx/SessionClears";
-        ArrivalDate arrivalDate = new ArrivalDate();
-        arrivalDate.arrivaldate = date;
-        Post(url, arrivalDate);
-    }
-
-    private void setSessionValue(String date) throws IOException {
-        String url = "https://reservemn.usedirect.com/MinnesotaWeb/Facilities/AdvanceSearch.aspx/SetSessionvalue";
-        AvailabilitySearchParams availabilitySearchParams = new AvailabilitySearchParams();
-        availabilitySearchParams.StartDate = date;
-        availabilitySearchParams.Nights = "1";
-        availabilitySearchParams.CategoryId = "0";
-        availabilitySearchParams.ShowOnlyAdaUnits = false;
-        availabilitySearchParams.ShowOnlyTentSiteUnits = "false";
-        availabilitySearchParams.ShowOnlyRvSiteUnits = "false";
-        availabilitySearchParams.MinimumVehicleLength = "0";
-        availabilitySearchParams.ShowSiteUnitsName = "0";
-        availabilitySearchParams.chooseActivity = "1";
-        availabilitySearchParams.IsPremium = false;
-
-        SearchParams searchParams = new SearchParams();
-        searchParams.availabilitySearchParams = availabilitySearchParams;
-
-        Post(url, searchParams);
+    private String postGrid(GridModel gridModel) throws IOException {
+        String url = "https://mnrdr.usedirect.com/minnesotardr/rdr/search/grid";
+        return Post(url, gridModel);
     }
 
     private String Get(String url) throws IOException {
@@ -211,65 +204,10 @@ public class CampRepository {
         return result.toString();
     }
 
-    private String PostForm(String url, String formData) throws IOException {
-        HttpPost post = new HttpPost(url);
-
-        UrlEncodedFormEntity requestEntity = new UrlEncodedFormEntity(breakIntoKeyValuePairs(formData));
-
-        post.setEntity(requestEntity);
-
-        HttpResponse response = client.execute(post);
-
-        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-
-        StringBuilder result = new StringBuilder();
-        String line;
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-
-        return result.toString();
-    }
-
-    private String getSessionCookies(String facilityId, String placeId) throws IOException {
-        String url = "https://reservemn.usedirect.com/MinnesotaWeb/Facilities/AdvanceSearch.aspx";
-        String html = Get(url);
-
-        Document doc = Jsoup.parse(html);
-        String viewState = URLEncoder.encode(doc.getElementById("__VIEWSTATE").val(), StandardCharsets.UTF_8);
-        String viewStateGenerator = URLEncoder.encode(doc.getElementById("__VIEWSTATEGENERATOR").val(), StandardCharsets.UTF_8);
-
-        String body = new String(Files.readAllBytes(Paths.get("src/main/resources/advance_search_body.txt")));
-        body = body.replace("{__VIEWSTATE}", viewState)
-                .replace("{__VIEWSTATEGENERATOR}", viewStateGenerator)
-                .replace("{FacilityId}", facilityId)
-                .replace("{placeId}", placeId);
-
-        return body;
-
-    }
-
     String serialize(Object obj) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
         return mapper.writeValueAsString(obj);
-    }
-
-    List<NameValuePair> breakIntoKeyValuePairs(String formData) {
-        List<NameValuePair> params = new ArrayList<>();
-        String[] parts = formData.split("=");
-        for (int i = 0; i < parts.length; i += 2) {
-            NameValuePair nameValuePair = new BasicNameValuePair(parts[i], parts[i + 1]);
-            params.add(nameValuePair);
-        }
-
-        try {
-            params = URLEncodedUtils.parse(new URI("?" + formData), Charset.forName("UTF-8"));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
-        return params;
     }
 }
