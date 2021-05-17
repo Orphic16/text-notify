@@ -23,10 +23,7 @@ import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class CampRepository {
     private final HttpClient client;
@@ -47,36 +44,20 @@ public class CampRepository {
         client = builder.build();
     }
 
-    public String findCampsitesForDate(String date, String facility) throws IOException {
+    public String findCampsitesForDates(String facility, String... dates) throws IOException {
         String[] parts = facility.split(",");
 
-        GridModel gridModel = buildGridModel(parts[1], date);
+        GridModel gridModel = buildGridModel(parts[1], dates[0]);
 
         String result = postGrid(gridModel);
 
-        List<String> sites = findSingleDate(result, date);
+        List<String> sites = findSitesWithDates(result, dates);
 
         if (sites.isEmpty()) {
-            return MessageFormat.format("No sites for {0} on {1}", parts[0], date);
+            return MessageFormat.format("No sites for {0} on {1}", parts[0], Arrays.asList(dates));
         }
 
-        return MessageFormat.format("Sites available for {0} on {1}: {2}", parts[0], date, sites.toString());
-    }
-
-    public String findCampsitesForTwoDates(String date, String nextDate, String facility) throws IOException {
-        String[] parts = facility.split(",");
-
-        GridModel gridModel = buildGridModel(parts[1], date);
-
-        String result = postGrid(gridModel);
-
-        List<String> sites = findTwoDates(result, date, nextDate);
-
-        if (sites.isEmpty()) {
-            return MessageFormat.format("No sites for {0} on {1} and {2}", parts[0], date, nextDate);
-        }
-
-        return MessageFormat.format("Sites available for {0} on {1} and {2}: {3}", parts[0], date, nextDate, sites.toString());
+        return MessageFormat.format("Sites available for {0} on {1}: {2}", parts[0], Arrays.asList(dates), sites.toString());
     }
 
     HashMap<String, ArrayList<String>> createSiteMap(String response) throws IOException {
@@ -112,27 +93,13 @@ public class CampRepository {
         return siteMap;
     }
 
-    List<String> findSingleDate(String response, String dateToMatch) throws IOException {
+    List<String> findSitesWithDates(String response, String... dates) throws IOException {
         List<String> sites = new ArrayList<>();
         HashMap<String, ArrayList<String>> siteMap = createSiteMap(response);
 
         for (HashMap.Entry<String, ArrayList<String>> site : siteMap.entrySet()) {
             List<String> availableDates = site.getValue();
-            if (availableDates.contains(dateToMatch)) {
-                sites.add(site.getKey());
-            }
-        }
-
-        return sites;
-    }
-
-    List<String> findTwoDates(String response, String dateToMatch, String secondDateToMatch) throws IOException {
-        List<String> sites = new ArrayList<>();
-        HashMap<String, ArrayList<String>> siteMap = createSiteMap(response);
-
-        for (HashMap.Entry<String, ArrayList<String>> site : siteMap.entrySet()) {
-            List<String> availableDates = site.getValue();
-            if (availableDates.contains(dateToMatch) && availableDates.contains(secondDateToMatch)) {
+            if (availableDates.containsAll(Arrays.asList(dates))) {
                 sites.add(site.getKey());
             }
         }

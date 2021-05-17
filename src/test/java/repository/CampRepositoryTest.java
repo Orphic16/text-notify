@@ -13,12 +13,12 @@ public class CampRepositoryTest {
     private final CampRepository cr = new CampRepository();
 
     @Test
-    public void findSingleDateTest() throws IOException {
+    public void findSitesWithDatesTest() throws IOException {
         // Arrange
         String response = new String(Files.readAllBytes(Paths.get("src/test/resources/campsite_response.txt")));
 
         // Act
-        List<String> result = cr.findSingleDate(response, "2021-05-21");
+        List<String> result = cr.findSitesWithDates(response, "2021-05-21");
 
         // Assert
         Assert.assertEquals(1, result.size());
@@ -26,12 +26,12 @@ public class CampRepositoryTest {
     }
 
     @Test
-    public void findTwoDatesTest() throws IOException {
+    public void findSitesWithDates_TwoDates() throws IOException {
         // Arrange
         String response = new String(Files.readAllBytes(Paths.get("src/test/resources/campsite_response.txt")));
 
         // Act
-        List<String> result = cr.findTwoDates(response, "2021-05-23", "2021-05-24");
+        List<String> result = cr.findSitesWithDates(response, "2021-05-23", "2021-05-24");
 
         // Assert
         Assert.assertEquals(7, result.size());

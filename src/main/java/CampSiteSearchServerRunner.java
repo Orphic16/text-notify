@@ -1,3 +1,4 @@
+import model.FACILITY;
 import repository.CampRepository;
 
 import java.io.IOException;
@@ -25,30 +26,15 @@ public class CampSiteSearchServerRunner {
         runCampingSearch("2021-06-04", "2021-06-05");
     }
 
-    private static void runCampingSearch(String date) {
+    private static void runCampingSearch(String... dates) {
         try {
             CampRepository cr = new CampRepository();
-            String search1 = cr.findCampsitesForDate(date, FACILITY.GOOSEBERRY_FALLS);
-            String search2 = cr.findCampsitesForDate(date, FACILITY.SPLIT_ROCK);
-            System.out.println(search1);
-            System.out.println(search2);
-
-            sendIfNotEmpty(search1);
-            sendIfNotEmpty(search2);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void runCampingSearch(String date, String nextDate) {
-        try {
-            CampRepository cr = new CampRepository();
-            String search1 = cr.findCampsitesForTwoDates(date, nextDate, FACILITY.GOOSEBERRY_FALLS);
+            String search1 = cr.findCampsitesForDates(FACILITY.GOOSEBERRY_FALLS, dates);
             System.out.println(search1);
             sendIfNotEmpty(search1);
 
             CampRepository cr2 = new CampRepository();
-            String search2 = cr2.findCampsitesForTwoDates(date, nextDate, FACILITY.SPLIT_ROCK);
+            String search2 = cr2.findCampsitesForDates(FACILITY.SPLIT_ROCK, dates);
             System.out.println(search2);
             sendIfNotEmpty(search2);
         } catch (IOException e) {
